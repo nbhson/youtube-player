@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app">
+        <div class="app__container">
+            <div class="input-section">
+                <div class="input-section__container">
+                    <div class="input-section__wrapper">
+                        <input type="text" class="input-section__field"
+                            placeholder="Paste YouTube URL here (e.g., https://www.youtube.com/watch?v=...)"
+                            id="youtubeLink">
+                        <span class="input-section__icon">📺</span>
+                    </div>
+                    <button class="input-section__button" id="loadButton">🚀 Load Video</button>
+                </div>
+            </div>
+
+            <div class="player-section">
+                <div class="player-section__container">
+                    <div class="card card--large">
+                        <div class="video-player">
+                            <iframe id="videoPlayer" class="video-player__iframe" title="YouTube Video Player"
+                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen
+                                src="https://www.youtube-nocookie.com/embed/sru72Wk20Y0?rel=0&playsinline=1&modestbranding=1&autoplay=1&mute=0"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message Container -->
+                <div id="messageContainer" class="message-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
