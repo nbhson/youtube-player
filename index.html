@@ -23,20 +23,91 @@
                 </div>
             </div>
 
-            <div class="player-section">
-                <div class="player-section__container">
-                    <div class="card card--large">
-                        <div class="video-player">
-                            <iframe id="videoPlayer" class="video-player__iframe" title="YouTube Video Player"
-                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen
-                                src="https://www.youtube-nocookie.com/embed/sru72Wk20Y0?rel=0&playsinline=1&modestbranding=1&autoplay=1&mute=0"></iframe>
+            <div class="content-section">
+                <div class="player-section">
+                    <div class="player-section__container">
+                        <div class="card card--large">
+                            <div class="video-player">
+                                <iframe id="videoPlayer" class="video-player__iframe" title="YouTube Video Player"
+                                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen
+                                    src="https://www.youtube-nocookie.com/embed/sru72Wk20Y0?rel=0&playsinline=1&modestbranding=1&autoplay=1&mute=0"></iframe>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Message Container -->
+                    <div id="messageContainer" class="message-container"></div>
                 </div>
 
-                <!-- Message Container -->
-                <div id="messageContainer" class="message-container"></div>
+              
+                 <div class="">
+                    <!-- API Key Section -->
+                    <div class="api-key-section">
+                        <div class="api-key-section__header">
+                            <h3 class="api-key-section__title">🔑 YouTube API Key</h3>
+                            <div class="api-key-section__controls">
+                                <button class="api-key-section__toggle-btn" id="toggleApiKey">
+                                    <span>👁️</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="api-key-section__container">
+                            <div class="api-key-section__input-group">
+                                <input type="password" 
+                                       class="api-key-section__input" 
+                                       id="apiKeyInput" 
+                                       placeholder="Enter your YouTube API key here..."
+                                       autocomplete="off">
+                                <button class="api-key-section__save-btn" id="saveApiKey">
+                                    💾 Save
+                                </button>
+                            </div>
+                            
+                            <div class="api-key-section__status" id="apiKeyStatus">
+                                <span class="api-key-section__status-icon">⚠️</span>
+                                <span class="api-key-section__status-text">API key not configured</span>
+                            </div>
+                            
+                            <div class="api-key-section__help">
+                                <details class="api-key-section__help-details">
+                                    <summary class="api-key-section__help-summary">📖 How to get API key?</summary>
+                                    <div class="api-key-section__help-content">
+                                        <ol>
+                                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                                            <li>Create a new project or select existing one</li>
+                                            <li>Enable YouTube Data API v3</li>
+                                            <li>Create credentials (API Key)</li>
+                                            <li>Copy and paste the API key above</li>
+                                        </ol>
+                                    </div>
+                                </details>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Suggested Videos Section -->
+                    <div class="suggested-videos-section">
+                        <div class="suggested-videos-section__header">
+                            <h3 class="suggested-videos-section__title">🎵 Suggested Videos</h3>
+                            <div class="suggested-videos-section__controls">
+                                <button class="suggested-videos-section__refresh-btn" id="refreshSuggestions">
+                                    <span>🔄</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="suggested-videos-section__container" id="suggestedVideosContainer">
+                            <!-- Suggested videos will be loaded here -->
+                            <div class="suggested-videos-section__loading">
+                                <div class="suggested-videos-section__loading-spinner"></div>
+                                <p>Loading suggestions...</p>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+                
             </div>
         </div>
     </div>
