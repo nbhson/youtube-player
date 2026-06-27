@@ -5,112 +5,199 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Player</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="app">
-        <div class="app__container">
-            <div class="input-section">
-                <div class="input-section__container">
-                    <div class="input-section__wrapper">
-                        <input type="text" class="input-section__field"
-                            placeholder="Paste YouTube URL here (e.g., https://www.youtube.com/watch?v=...)"
-                            id="youtubeLink">
-                        <span class="input-section__icon">📺</span>
-                    </div>
-                    <button class="input-section__button" id="loadButton">🚀 Load Video</button>
+        <header class="app-header">
+            <div class="logo-container">
+                <span class="logo-icon">🔮</span>
+                <div class="logo-text">
+                    <h1>YT</h1>
+                    <span class="logo-badge">Premium Lite</span>
                 </div>
             </div>
+        </header>
 
-            <div class="content-section">
-                <div class="player-section">
-                    <div class="player-section__container">
-                        <div class="card card--large">
-                            <div class="video-player">
-                                <iframe id="videoPlayer" class="video-player__iframe" title="YouTube Video Player"
-                                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                                    allowfullscreen
-                                    src="https://www.youtube-nocookie.com/embed/sru72Wk20Y0?rel=0&playsinline=1&modestbranding=1&autoplay=1&mute=0"></iframe>
-                            </div>
+        <div class="app__container">
+            <div class="content-layout">
+                <!-- Left: Player & Inputs -->
+                <main class="main-content">
+                    <!-- Input Section -->
+                    <div class="search-box">
+                        <div class="search-box__wrapper">
+                            <span class="search-box__icon">🔗</span>
+                            <input type="text" class="search-box__input" id="youtubeLink" 
+                                placeholder="Paste YouTube link here (URL, shorts, or Video ID)...">
+                            <button class="search-box__btn" id="loadButton">
+                                <span>Load Video</span>
+                                <span class="btn-icon">⚡</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Message Container -->
-                    <div id="messageContainer" class="message-container"></div>
-                </div>
+                    <!-- Video Container -->
+                    <div class="player-wrapper">
+                        <!-- Ambient glow matching the video theme -->
+                        <div class="player-ambient-glow" id="ambientGlow"></div>
+                        
+                        <div class="player-container">
+                            <iframe id="videoPlayer" class="player-iframe" title="YouTube Video Player"
+                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen
+                                src="https://www.youtube-nocookie.com/embed/sru72Wk20Y0?rel=0&playsinline=1&modestbranding=1&autoplay=1"></iframe>
+                        </div>
+                    </div>
 
-              
-                 <div class="">
-                    <!-- API Key Section -->
-                    <div class="api-key-section">
-                        <div class="api-key-section__header">
-                            <h3 class="api-key-section__title">🔑 YouTube API Key</h3>
-                            <div class="api-key-section__controls">
-                                <button class="api-key-section__toggle-btn" id="toggleApiKey">
-                                    <span>👁️</span>
+                    <!-- Active Video Info & Shelf Controls -->
+                    <div class="video-shelf">
+                        <div class="video-info">
+                            <h2 class="video-title" id="activeVideoTitle">Loading title...</h2>
+                            <p class="video-channel" id="activeVideoChannel">No details retrieved yet</p>
+                        </div>
+                        <div class="shelf-controls">
+                            <!-- Playback Source Selector -->
+                            <div class="control-group">
+                                <label for="playerSource" class="control-label">Source Backend</label>
+                                <div class="select-wrapper">
+                                    <select id="playerSource" class="control-select">
+                                        <option value="nocookie">YouTube (No-Cookie)</option>
+                                        <option value="invidious">Invidious Instance</option>
+                                        <option value="piped">Piped Proxy</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="action-buttons">
+                                <button class="action-btn action-btn--favorite" id="favoriteToggle" title="Save to Favorites">
+                                    <span class="action-btn__icon">☆</span>
+                                    <span class="action-btn__text">Favorite</span>
+                                </button>
+                                <button class="action-btn action-btn--share" id="shareEmbed" title="Copy Embed Link">
+                                    <span class="action-btn__icon">🔗</span>
+                                    <span class="action-btn__text">Share</span>
                                 </button>
                             </div>
                         </div>
-                        
-                        <div class="api-key-section__container">
-                            <div class="api-key-section__input-group">
-                                <input type="password" 
-                                       class="api-key-section__input" 
-                                       id="apiKeyInput" 
-                                       placeholder="Enter your YouTube API key here..."
-                                       autocomplete="off">
-                                <button class="api-key-section__save-btn" id="saveApiKey">
-                                    💾 Save
-                                </button>
-                            </div>
-                            
-                            <div class="api-key-section__status" id="apiKeyStatus">
-                                <span class="api-key-section__status-icon">⚠️</span>
-                                <span class="api-key-section__status-text">API key not configured</span>
-                            </div>
-                            
-                            <div class="api-key-section__help">
-                                <details class="api-key-section__help-details">
-                                    <summary class="api-key-section__help-summary">📖 How to get API key?</summary>
-                                    <div class="api-key-section__help-content">
-                                        <ol>
-                                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
-                                            <li>Create a new project or select existing one</li>
-                                            <li>Enable YouTube Data API v3</li>
-                                            <li>Create credentials (API Key)</li>
-                                            <li>Copy and paste the API key above</li>
-                                        </ol>
+                    </div>
+                </main>
+
+                <!-- Right: Tabs Sidebar -->
+                <aside class="sidebar">
+                    <!-- Tab Headers -->
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="up-next">
+                            <span>🎵</span> Up Next
+                        </button>
+                        <button class="tab-btn" data-tab="favorites-history">
+                            <span>⭐</span> Library
+                        </button>
+                        <button class="tab-btn" data-tab="settings">
+                            <span>⚙️</span> Settings
+                        </button>
+                    </div>
+
+                    <!-- Tab Contents -->
+                    <div class="tabs-content">
+                        <!-- Tab: Up Next (Suggestions) -->
+                        <div class="tab-panel active" id="tab-up-next">
+                            <div class="suggested-videos-section">
+                                <div class="panel-section-header">
+                                    <h3>Suggested Videos</h3>
+                                    <button class="icon-btn" id="refreshSuggestions" title="Refresh suggestions">🔄</button>
+                                </div>
+                                <div class="suggested-container" id="suggestedVideosContainer">
+                                    <div class="loading-state">
+                                        <div class="spinner"></div>
+                                        <p>Loading suggestions...</p>
                                     </div>
-                                </details>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Library (Favorites & History) -->
+                        <div class="tab-panel" id="tab-favorites-history">
+                            <div class="library-section">
+                                <!-- Favorites Sub-section -->
+                                <div class="library-group">
+                                    <div class="panel-section-header">
+                                        <h3>⭐ Favorites</h3>
+                                        <span class="group-count" id="favoritesCount">0</span>
+                                    </div>
+                                    <div class="library-list" id="favoritesList">
+                                        <div class="empty-state">No favorite videos yet</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Divider -->
+                                <div class="library-divider"></div>
+
+                                <!-- History Sub-section -->
+                                <div class="library-group">
+                                    <div class="panel-section-header">
+                                        <h3>🕒 Recently Played</h3>
+                                        <button class="text-link" id="clearHistory">Clear</button>
+                                    </div>
+                                    <div class="library-list" id="historyList">
+                                        <div class="empty-state">No history recorded</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Settings (API configuration) -->
+                        <div class="tab-panel" id="tab-settings">
+                            <div class="settings-section">
+                                <div class="api-key-section">
+                                    <div class="panel-section-header">
+                                        <h3>🔑 YouTube API Key</h3>
+                                        <button class="icon-btn" id="toggleApiKey" title="Toggle visibility">👁️</button>
+                                    </div>
+                                    
+                                    <div class="api-key-container">
+                                        <div class="input-group">
+                                            <input type="password" class="settings-input" id="apiKeyInput" 
+                                                placeholder="Enter YouTube API key..." autocomplete="off">
+                                            <button class="settings-btn" id="saveApiKey">Save</button>
+                                        </div>
+                                        
+                                        <div class="api-key-status" id="apiKeyStatus">
+                                            <span class="status-icon">⚠️</span>
+                                            <span class="status-text">API key not configured</span>
+                                        </div>
+                                        
+                                        <div class="api-key-help">
+                                            <details class="help-details">
+                                                <summary class="help-summary">📖 How to get an API key?</summary>
+                                                <div class="help-content">
+                                                    <ol>
+                                                        <li>Go to the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a>.</li>
+                                                        <li>Create a new project or select an existing one.</li>
+                                                        <li>Enable the <strong>YouTube Data API v3</strong>.</li>
+                                                        <li>Go to credentials, click <strong>Create Credentials</strong> and select <strong>API Key</strong>.</li>
+                                                        <li>Paste it here and click Save.</li>
+                                                    </ol>
+                                                </div>
+                                            </details>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-    
-                    <!-- Suggested Videos Section -->
-                    <div class="suggested-videos-section">
-                        <div class="suggested-videos-section__header">
-                            <h3 class="suggested-videos-section__title">🎵 Suggested Videos</h3>
-                            <div class="suggested-videos-section__controls">
-                                <button class="suggested-videos-section__refresh-btn" id="refreshSuggestions">
-                                    <span>🔄</span>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="suggested-videos-section__container" id="suggestedVideosContainer">
-                            <!-- Suggested videos will be loaded here -->
-                            <div class="suggested-videos-section__loading">
-                                <div class="suggested-videos-section__loading-spinner"></div>
-                                <p>Loading suggestions...</p>
-                            </div>
-                        </div>
-                    </div>
-                 </div>
-                
+                </aside>
             </div>
         </div>
     </div>
+
+    <!-- Message Container -->
+    <div id="messageContainer" class="message-container"></div>
 
     <script src="app.js"></script>
 </body>

@@ -4,7 +4,7 @@
  */
 
 // ============================================================================
-// Constants
+// Constants & Fallbacks
 // ============================================================================
 const CONFIG = {
     DEFAULT_VIDEO_ID: 'sru72Wk20Y0',
@@ -12,9 +12,9 @@ const CONFIG = {
     MESSAGE_ANIMATION_DELAY: 100,
     MESSAGE_REMOVE_DELAY: 300,
     YOUTUBE_EMBED_BASE_URL: 'https://www.youtube-nocookie.com/embed/',
-    YOUTUBE_EMBED_PARAMS: 'rel=0&playsinline=1&modestbranding=1&autoplay=1&mute=0',
+    YOUTUBE_EMBED_PARAMS: 'rel=0&playsinline=1&modestbranding=1&autoplay=1',
     SUGGESTED_VIDEOS_COUNT: 10,
-    YOUTUBE_API_KEY: 'AIzaSyAXZ2ntfnxiUDPQJq_FjCUIy6wKbqcxuWQ', // Can be changed
+    YOUTUBE_API_KEY: 'AIzaSyAXZ2ntfnxiUDPQJq_FjCUIy6wKbqcxuWQ', // Default API Key placeholder
     YOUTUBE_API_BASE_URL: 'https://www.googleapis.com/youtube/v3'
 };
 
@@ -28,7 +28,91 @@ const YOUTUBE_URL_PATTERNS = [
     /[?&]v=([a-zA-Z0-9_-]+)/,
     /\/shorts\/([a-zA-Z0-9_-]+)/,
     /youtu\.be\/([a-zA-Z0-9_-]+)/,
-    /\/embed\/([a-zA-Z0-9_-]+)/
+    /\/embed\/([a-zA-Z0-9_-]+)/,
+    /^([a-zA-Z0-9_-]{11})$/ // Direct 11-char Video ID match
+];
+
+const FALLBACK_VIDEOS = [
+    {
+        id: 'jfKfPfyJRdk',
+        snippet: {
+            title: 'lofi hip hop radio 📚 beats to relax/study to',
+            channelTitle: 'Lofi Girl',
+            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/jfKfPfyJRdk/mqdefault.jpg' } }
+        },
+        statistics: { viewCount: '850000000' },
+        contentDetails: { duration: 'PT24H0M0S' }
+    },
+    {
+        id: '4xDzrJKXOOY',
+        snippet: {
+            title: 'synthwave radio 🌌 beats to chill/game to',
+            channelTitle: 'Lofi Girl',
+            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/4xDzrJKXOOY/mqdefault.jpg' } }
+        },
+        statistics: { viewCount: '150000000' },
+        contentDetails: { duration: 'PT24H0M0S' }
+    },
+    {
+        id: 'n4O95n8y2lo',
+        snippet: {
+            title: '10 Hours of Relaxing Rain & Thunder Sounds for Sleep',
+            channelTitle: 'Relaxing Sounds',
+            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/n4O95n8y2lo/mqdefault.jpg' } }
+        },
+        statistics: { viewCount: '45000000' },
+        contentDetails: { duration: 'PT10H0M0S' }
+    },
+    {
+        id: 'XWZ0xJpxzD8',
+        snippet: {
+            title: 'New M4 MacBook Pro: What They Didn\'t Tell You!',
+            channelTitle: 'TechVibe',
+            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/XWZ0xJpxzD8/mqdefault.jpg' } }
+        },
+        statistics: { viewCount: '2500000' },
+        contentDetails: { duration: 'PT12M42S' }
+    },
+    {
+        id: 'mPZkdNFkNps',
+        snippet: {
+            title: 'Cozy Rain & Coffee Shop Ambience ☕ Lofi Jazz Music',
+            channelTitle: 'Rainy Cafe',
+            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/mPZkdNFkNps/mqdefault.jpg' } }
+        },
+        statistics: { viewCount: '12000000' },
+        contentDetails: { duration: 'PT3H0M0S' }
+    },
+    {
+        id: 'TcMBFSGVi1c',
+        snippet: {
+            title: 'Marvel Studios\' Avengers: Endgame - Official Trailer',
+            channelTitle: 'Marvel Entertainment',
+            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/TcMBFSGVi1c/mqdefault.jpg' } }
+        },
+        statistics: { viewCount: '160000000' },
+        contentDetails: { duration: 'PT2M29S' }
+    },
+    {
+        id: 'JGwWNGJdvx8',
+        snippet: {
+            title: 'Ed Sheeran - Shape of You [Official Video]',
+            channelTitle: 'Ed Sheeran',
+            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/JGwWNGJdvx8/mqdefault.jpg' } }
+        },
+        statistics: { viewCount: '6200000000' },
+        contentDetails: { duration: 'PT4M24S' }
+    },
+    {
+        id: 'Yykjpe592Ro',
+        snippet: {
+            title: 'Coldplay - Hymn For The Weekend (Official Video)',
+            channelTitle: 'Coldplay',
+            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/Yykjpe592Ro/mqdefault.jpg' } }
+        },
+        statistics: { viewCount: '1900000000' },
+        contentDetails: { duration: 'PT4M20S' }
+    }
 ];
 
 // ============================================================================
@@ -44,16 +128,31 @@ const DOM = {
     apiKeyInput: document.getElementById('apiKeyInput'),
     saveApiKeyBtn: document.getElementById('saveApiKey'),
     toggleApiKeyBtn: document.getElementById('toggleApiKey'),
-    apiKeyStatus: document.getElementById('apiKeyStatus')
+    apiKeyStatus: document.getElementById('apiKeyStatus'),
+    
+    // New UX Elements
+    playerSource: document.getElementById('playerSource'),
+    activeVideoTitle: document.getElementById('activeVideoTitle'),
+    activeVideoChannel: document.getElementById('activeVideoChannel'),
+    favoriteToggle: document.getElementById('favoriteToggle'),
+    shareEmbed: document.getElementById('shareEmbed'),
+    favoritesList: document.getElementById('favoritesList'),
+    historyList: document.getElementById('historyList'),
+    favoritesCount: document.getElementById('favoritesCount'),
+    clearHistory: document.getElementById('clearHistory'),
+    ambientGlow: document.getElementById('ambientGlow')
 };
 
 // ============================================================================
-// App State
+// App State Management
 // ============================================================================
 class AppState {
     constructor() {
         this.currentVideoId = CONFIG.DEFAULT_VIDEO_ID;
         this.apiKey = this.loadApiKey();
+        this.playbackSource = this.loadPlaybackSource();
+        this.favorites = this.loadFavorites();
+        this.history = this.loadHistory();
     }
 
     setVideoId(videoId) {
@@ -70,7 +169,7 @@ class AppState {
     }
 
     getApiKey() {
-        return this.apiKey || CONFIG.YOUTUBE_API_KEY;
+        return this.apiKey || ''; // Do not enforce placeholder
     }
 
     loadApiKey() {
@@ -79,35 +178,100 @@ class AppState {
 
     hasValidApiKey() {
         const apiKey = this.getApiKey();
-        const isValid = apiKey && apiKey !== 'YOUR_YOUTUBE_API_KEY_HERE' && apiKey.length > 10;
-        console.log('API Key validation:', {
-            hasKey: !!apiKey,
-            isNotDefault: apiKey !== 'YOUR_YOUTUBE_API_KEY_HERE',
-            length: apiKey ? apiKey.length : 0,
-            isValid: isValid
-        });
-        return isValid;
+        return apiKey && apiKey.length > 10;
+    }
+
+    // Playback Sources
+    setPlaybackSource(source) {
+        this.playbackSource = source;
+        localStorage.setItem('youtube_playback_source', source);
+    }
+
+    getPlaybackSource() {
+        return this.playbackSource;
+    }
+
+    loadPlaybackSource() {
+        return localStorage.getItem('youtube_playback_source') || 'nocookie';
+    }
+
+    // Library - Favorites
+    loadFavorites() {
+        try {
+            return JSON.parse(localStorage.getItem('youtube_favorites')) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    saveFavorites() {
+        localStorage.setItem('youtube_favorites', JSON.stringify(this.favorites));
+    }
+
+    toggleFavorite(video) {
+        const idx = this.favorites.findIndex(v => v.id === video.id);
+        if (idx > -1) {
+            this.favorites.splice(idx, 1);
+            this.saveFavorites();
+            return false; // Removed
+        } else {
+            this.favorites.push(video);
+            this.saveFavorites();
+            return true; // Added
+        }
+    }
+
+    isFavorite(videoId) {
+        return this.favorites.some(v => v.id === videoId);
+    }
+
+    // Library - History
+    loadHistory() {
+        try {
+            return JSON.parse(localStorage.getItem('youtube_history')) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    saveHistory() {
+        localStorage.setItem('youtube_history', JSON.stringify(this.history));
+    }
+
+    addHistory(video) {
+        // Remove existing duplicates
+        this.history = this.history.filter(v => v.id !== video.id);
+        // Push to front
+        this.history.unshift(video);
+        // Truncate to maximum 20 items
+        if (this.history.length > 20) {
+            this.history.pop();
+        }
+        this.saveHistory();
+    }
+
+    clearHistory() {
+        this.history = [];
+        this.saveHistory();
     }
 }
 
 const appState = new AppState();
 
 // ============================================================================
-// Utility Functions
+// Utility Methods (Bypass URLs & Formatting)
 // ============================================================================
 class YouTubeUtils {
     /**
-     * Extract video ID from various YouTube URL formats
-     * @param {string} url - YouTube URL
-     * @returns {string|null} - Video ID or null if not found
+     * Extract video ID from various YouTube formats
+     * @param {string} url - youtube link or video ID
      */
     static extractVideoId(url) {
-        if (!url || typeof url !== 'string') {
-            return null;
-        }
-
+        if (!url || typeof url !== 'string') return null;
+        
+        const cleanUrl = url.trim();
         for (const pattern of YOUTUBE_URL_PATTERNS) {
-            const match = url.match(pattern);
+            const match = cleanUrl.match(pattern);
             if (match && match[1]) {
                 return match[1];
             }
@@ -116,78 +280,108 @@ class YouTubeUtils {
     }
 
     /**
-     * Build YouTube embed URL with parameters
-     * @param {string} videoId - YouTube video ID
-     * @returns {string} - Complete embed URL
+     * Build appropriate frame URL based on selection
+     * @param {string} videoId 
+     * @param {string} source - 'nocookie' | 'invidious' | 'piped'
      */
-    static buildEmbedUrl(videoId) {
-        const origin = window.location.origin;
-        const params = `${CONFIG.YOUTUBE_EMBED_PARAMS}&origin=${origin}`;
-        return `${CONFIG.YOUTUBE_EMBED_BASE_URL}${videoId}?${params}`;
+    static buildEmbedUrl(videoId, source) {
+        if (source === 'invidious') {
+            return `https://yewtu.be/embed/${videoId}?autoplay=1`;
+        } else if (source === 'piped') {
+            return `https://piped.video/embed/${videoId}`;
+        } else {
+            // Default: youtube no-cookie standard bypass
+            const origin = window.location.origin;
+            return `${CONFIG.YOUTUBE_EMBED_BASE_URL}${videoId}?${CONFIG.YOUTUBE_EMBED_PARAMS}&origin=${origin}`;
+        }
     }
 
     /**
-     * Fetch suggested videos from YouTube API
-     * @param {string} videoId - Current video ID for related videos
-     * @returns {Promise<Array>} - Array of suggested videos
+     * Fetch video title and author publicly (No API Key required) via oEmbed proxy
+     * @param {string} videoId 
      */
-    static async fetchSuggestedVideos(videoId) {
+    static async fetchVideoDetailsOEmbed(videoId) {
         try {
-            const apiKey = appState.getApiKey();
+            // Using noembed CORS-enabled proxy endpoint
+            const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+            if (!response.ok) throw new Error('Proxy failure');
+            
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            return {
+                id: videoId,
+                title: data.title || `Video (${videoId})`,
+                channelTitle: data.author_name || 'YouTube Creator',
+                thumbnailUrl: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`
+            };
+        } catch (e) {
+            console.warn('OEmbed fetch failed, fallback applied:', e);
+            return {
+                id: videoId,
+                title: `YouTube Video (${videoId})`,
+                channelTitle: 'YouTube Bypass',
+                thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`
+            };
+        }
+    }
+
+    /**
+     * Search related videos using title keyword matching (Workaround for deprecated relatedToVideoId)
+     */
+    static async fetchSuggestedVideos(videoId, title) {
+        try {
             if (!appState.hasValidApiKey()) {
-                throw new Error('API key not configured');
+                throw new Error('API Key missing');
             }
 
-            const url = `${CONFIG.YOUTUBE_API_BASE_URL}/search?part=snippet&relatedToVideoId=${videoId}&type=video&maxResults=${CONFIG.SUGGESTED_VIDEOS_COUNT}&key=${apiKey}`;
+            const apiKey = appState.getApiKey();
+            
+            // Extract core words from title to use as search queries
+            const cleanTitle = title
+                ? title.replace(/[^\w\s]/gi, '').split(/\s+/).slice(0, 4).join(' ')
+                : 'music';
+            const query = encodeURIComponent(cleanTitle);
+            
+            const url = `${CONFIG.YOUTUBE_API_BASE_URL}/search?part=snippet&q=${query}&type=video&maxResults=${CONFIG.SUGGESTED_VIDEOS_COUNT}&key=${apiKey}`;
             const response = await fetch(url);
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
             return data.items || [];
         } catch (error) {
-            console.error('Error fetching suggested videos:', error);
+            console.error('Error fetching suggestions:', error);
             return [];
         }
     }
 
     /**
-     * Fetch video details for suggested videos
-     * @param {Array} videoIds - Array of video IDs
-     * @returns {Promise<Array>} - Array of video details
+     * Fetch durations and view stats for suggestions
      */
     static async fetchVideoDetails(videoIds) {
         try {
             const apiKey = appState.getApiKey();
-            if (!appState.hasValidApiKey()) {
-                throw new Error('API key not configured');
-            }
+            if (!appState.hasValidApiKey()) return [];
 
             const ids = videoIds.join(',');
             const url = `${CONFIG.YOUTUBE_API_BASE_URL}/videos?part=snippet,statistics,contentDetails&id=${ids}&key=${apiKey}`;
             const response = await fetch(url);
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
             return data.items || [];
         } catch (error) {
-            console.error('Error fetching video details:', error);
+            console.error('Error fetching statistics details:', error);
             return [];
         }
     }
 
-    /**
-     * Format view count with K, M, B suffixes
-     * @param {string} viewCount - Raw view count
-     * @returns {string} - Formatted view count
-     */
     static formatViewCount(viewCount) {
+        if (!viewCount) return '';
         const count = parseInt(viewCount);
+        if (isNaN(count)) return '';
         if (count >= 1000000000) {
             return (count / 1000000000).toFixed(1) + 'B';
         } else if (count >= 1000000) {
@@ -198,13 +392,13 @@ class YouTubeUtils {
         return count.toString();
     }
 
-    /**
-     * Format duration from ISO 8601 format
-     * @param {string} duration - ISO 8601 duration string
-     * @returns {string} - Formatted duration
-     */
     static formatDuration(duration) {
+        if (!duration) return '';
+        if (!duration.startsWith('PT')) return duration;
+        
         const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+        if (!match) return '';
+        
         const hours = (match[1] || '').replace('H', '');
         const minutes = (match[2] || '').replace('M', '');
         const seconds = (match[3] || '').replace('S', '');
@@ -212,234 +406,314 @@ class YouTubeUtils {
         if (hours) {
             return `${hours}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
         } else {
-            return `${minutes}:${seconds.padStart(2, '0')}`;
+            return `${minutes || '0'}:${seconds.padStart(2, '0')}`;
         }
     }
 }
 
 // ============================================================================
-// API Key Controller
+// Controllers
 // ============================================================================
-class ApiKeyController {
-    /**
-     * Initialize API key section
-     */
+
+class TabController {
     static init() {
-        console.log('Initializing API Key Controller...');
-        this.loadSavedApiKey();
-        console.log('Saved API key loaded');
-        this.updateStatus();
-        console.log('API key status updated');
-        this.bindEvents();
-        console.log('API key events bound');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                this.switchTab(tabId);
+            });
+        });
     }
 
-    /**
-     * Load saved API key from localStorage
-     */
-    static loadSavedApiKey() {
-        const savedApiKey = appState.loadApiKey();
-        console.log('Saved API key from localStorage:', savedApiKey ? 'Found' : 'Not found');
-        if (savedApiKey && DOM.apiKeyInput) {
-            DOM.apiKeyInput.value = savedApiKey;
-            console.log('API key loaded into input field');
-        } else {
-            console.log('No saved API key or input field not found');
+    static switchTab(tabId) {
+        // Toggle tab header buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabId);
+        });
+
+        // Toggle panel contents
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.toggle('active', panel.id === `tab-${tabId}`);
+        });
+    }
+}
+
+class LibraryController {
+    static init() {
+        this.renderFavorites();
+        this.renderHistory();
+
+        if (DOM.clearHistory) {
+            DOM.clearHistory.addEventListener('click', () => {
+                appState.clearHistory();
+                this.renderHistory();
+                MessageSystem.show('Playback history cleared', 'success');
+            });
         }
     }
 
-    /**
-     * Update API key status display
-     */
+    static renderFavorites() {
+        if (!DOM.favoritesList) return;
+        const favorites = appState.favorites;
+
+        if (DOM.favoritesCount) {
+            DOM.favoritesCount.textContent = favorites.length;
+        }
+
+        if (favorites.length === 0) {
+            DOM.favoritesList.innerHTML = `<div class="empty-state">No favorite videos yet</div>`;
+            return;
+        }
+
+        const html = favorites.map(video => `
+            <div class="library-card" data-video-id="${video.id}">
+                <div class="library-card__thumbnail">
+                    <img src="${video.thumbnailUrl}" alt="${video.title}" loading="lazy">
+                </div>
+                <div class="library-card__content">
+                    <h4 class="library-card__title" title="${video.title}">${video.title}</h4>
+                    <p class="library-card__channel">${video.channelTitle}</p>
+                </div>
+                <button class="library-card__delete" data-video-id="${video.id}" title="Remove from favorites">✕</button>
+            </div>
+        `).join('');
+
+        DOM.favoritesList.innerHTML = html;
+        this.bindLibraryEvents(DOM.favoritesList);
+    }
+
+    static renderHistory() {
+        if (!DOM.historyList) return;
+        const history = appState.history;
+
+        if (history.length === 0) {
+            DOM.historyList.innerHTML = `<div class="empty-state">No history recorded</div>`;
+            return;
+        }
+
+        const html = history.map(video => `
+            <div class="library-card" data-video-id="${video.id}">
+                <div class="library-card__thumbnail">
+                    <img src="${video.thumbnailUrl}" alt="${video.title}" loading="lazy">
+                </div>
+                <div class="library-card__content">
+                    <h4 class="library-card__title" title="${video.title}">${video.title}</h4>
+                    <p class="library-card__channel">${video.channelTitle}</p>
+                </div>
+            </div>
+        `).join('');
+
+        DOM.historyList.innerHTML = html;
+        this.bindLibraryEvents(DOM.historyList);
+    }
+
+    static bindLibraryEvents(container) {
+        // Handle playlist select cards click
+        container.querySelectorAll('.library-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Ignore if clicked directly on deletion cross
+                if (e.target.classList.contains('library-card__delete')) return;
+                
+                const videoId = card.dataset.videoId;
+                if (videoId) {
+                    VideoPlayerController.loadVideoById(videoId);
+                }
+            });
+        });
+
+        // Handle deletions
+        container.querySelectorAll('.library-card__delete').forEach(delBtn => {
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const videoId = delBtn.dataset.videoId;
+                const foundItem = appState.favorites.find(v => v.id === videoId);
+                if (foundItem) {
+                    appState.toggleFavorite(foundItem);
+                    this.renderFavorites();
+                    VideoPlayerController.updateFavoriteButtonState();
+                    MessageSystem.show('Removed from Favorites', 'success');
+                }
+            });
+        });
+    }
+}
+
+class ApiKeyController {
+    static init() {
+        this.loadSavedApiKey();
+        this.updateStatus();
+        this.bindEvents();
+    }
+
+    static loadSavedApiKey() {
+        const savedApiKey = appState.loadApiKey();
+        if (savedApiKey && DOM.apiKeyInput) {
+            DOM.apiKeyInput.value = savedApiKey;
+        }
+    }
+
     static updateStatus() {
         if (!DOM.apiKeyStatus) return;
 
         const hasValidKey = appState.hasValidApiKey();
         const statusElement = DOM.apiKeyStatus;
-        const iconElement = statusElement.querySelector('.api-key-section__status-icon');
-        const textElement = statusElement.querySelector('.api-key-section__status-text');
+        const iconElement = statusElement.querySelector('.status-icon');
+        const textElement = statusElement.querySelector('.status-text');
 
         if (hasValidKey) {
-            statusElement.className = 'api-key-section__status api-key-section__status--success';
-            iconElement.textContent = '✅';
-            textElement.textContent = 'API key configured successfully';
+            statusElement.className = 'api-key-status api-key-status--success';
+            if (iconElement) iconElement.textContent = '✅';
+            if (textElement) textElement.textContent = 'API key configured successfully';
         } else {
-            statusElement.className = 'api-key-section__status api-key-section__status--error';
-            iconElement.textContent = '⚠️';
-            textElement.textContent = 'API key not configured';
+            statusElement.className = 'api-key-status api-key-status--error';
+            if (iconElement) iconElement.textContent = '⚠️';
+            if (textElement) textElement.textContent = 'API key not configured';
         }
     }
 
-    /**
-     * Save API key
-     */
     static saveApiKey() {
         const apiKey = DOM.apiKeyInput?.value?.trim();
-        console.log('Saving API key:', apiKey ? 'Key provided' : 'No key');
         
         if (!apiKey) {
-            MessageSystem.show('Please enter an API key', 'error');
+            MessageSystem.show('Please enter a YouTube API key', 'error');
             return;
         }
 
-        if (apiKey.length < 10) {
-            MessageSystem.show('API key seems too short', 'error');
+        if (apiKey.length < 15) {
+            MessageSystem.show('API Key looks invalid (too short)', 'error');
             return;
         }
 
-        console.log('API key validation passed, saving...');
         appState.setApiKey(apiKey);
         this.updateStatus();
-        MessageSystem.show('API key saved successfully!', 'success');
+        MessageSystem.show('API Key configured successfully!', 'success');
 
-        // Refresh suggestions if there's a current video
-        const currentVideoId = appState.getVideoId();
-        console.log('Current video ID:', currentVideoId);
-        if (currentVideoId && currentVideoId !== CONFIG.DEFAULT_VIDEO_ID) {
-            console.log('Loading suggested videos after API key save...');
-            SuggestedVideosController.loadSuggestedVideos(currentVideoId);
-        } else {
-            console.log('No current video or default video, not loading suggestions');
-        }
+        // Refresh suggestions
+        SuggestedVideosController.refreshSuggestions();
     }
 
-    /**
-     * Toggle API key visibility
-     */
-    static toggleApiKeyVisibility() {
+    static toggleVisibility() {
         if (!DOM.apiKeyInput || !DOM.toggleApiKeyBtn) return;
-
-        const isPassword = DOM.apiKeyInput.type === 'password';
-        DOM.apiKeyInput.type = isPassword ? 'text' : 'password';
-        
-        const toggleBtn = DOM.toggleApiKeyBtn.querySelector('span');
-        toggleBtn.textContent = isPassword ? '🙈' : '👁️';
+        const isMasked = DOM.apiKeyInput.type === 'password';
+        DOM.apiKeyInput.type = isMasked ? 'text' : 'password';
+        DOM.toggleApiKeyBtn.textContent = isMasked ? '🙈' : '👁️';
     }
 
-    /**
-     * Bind API key events
-     */
     static bindEvents() {
         if (DOM.saveApiKeyBtn) {
             DOM.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
         }
-
         if (DOM.toggleApiKeyBtn) {
-            DOM.toggleApiKeyBtn.addEventListener('click', () => this.toggleApiKeyVisibility());
+            DOM.toggleApiKeyBtn.addEventListener('click', () => this.toggleVisibility());
         }
-
         if (DOM.apiKeyInput) {
-            DOM.apiKeyInput.addEventListener('keypress', (event) => {
-                if (event.key === 'Enter') {
-                    this.saveApiKey();
-                }
+            DOM.apiKeyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.saveApiKey();
             });
         }
     }
 }
 
-// ============================================================================
-// Suggested Videos Controller
-// ============================================================================
 class SuggestedVideosController {
-    /**
-     * Load suggested videos for current video
-     * @param {string} videoId - Current video ID
-     */
-    static async loadSuggestedVideos(videoId) {
+    static async loadSuggestedVideos(videoId, title) {
         try {
-            console.log('Loading suggested videos for video ID:', videoId);
             this.showLoading();
-            
-            // Check if API key is valid
+
             if (!appState.hasValidApiKey()) {
-                console.log('API key not valid, showing error');
-                this.showError('Please configure API key first');
+                console.log('No configured API Key. Loading fallback curation suggestions.');
+                this.displayFallbackSuggestions();
                 return;
             }
-            
-            // Fetch suggested videos
-            console.log('Fetching suggested videos...');
-            const suggestedVideos = await YouTubeUtils.fetchSuggestedVideos(videoId);
-            console.log('Suggested videos fetched:', suggestedVideos.length);
-            
-            if (suggestedVideos.length === 0) {
-                console.log('No suggested videos found');
-                this.showError('No suggestions available');
+
+            const searchResults = await YouTubeUtils.fetchSuggestedVideos(videoId, title);
+            if (searchResults.length === 0) {
+                this.displayFallbackSuggestions();
                 return;
             }
-            
-            // Get video IDs
-            const videoIds = suggestedVideos.map(video => video.id.videoId);
-            console.log('Video IDs to fetch details:', videoIds);
-            
-            // Fetch detailed information
-            console.log('Fetching video details...');
-            const videoDetails = await YouTubeUtils.fetchVideoDetails(videoIds);
-            console.log('Video details fetched:', videoDetails.length);
-            
-            // Display suggested videos
-            this.displaySuggestedVideos(videoDetails);
-            
+
+            const videoIds = searchResults.map(item => item.id.videoId).filter(Boolean);
+            if (videoIds.length === 0) {
+                this.displayFallbackSuggestions();
+                return;
+            }
+
+            const detailedItems = await YouTubeUtils.fetchVideoDetails(videoIds);
+            if (detailedItems.length === 0) {
+                this.displayFallbackSuggestions();
+                return;
+            }
+
+            this.displaySuggestedVideos(detailedItems);
         } catch (error) {
-            console.error('Error loading suggested videos:', error);
-            this.showError(`Failed to load suggestions: ${error.message}`);
+            console.error('Failed to resolve suggestions:', error);
+            this.displayFallbackSuggestions();
         }
     }
 
-    /**
-     * Display suggested videos in the UI
-     * @param {Array} videos - Array of video details
-     */
     static displaySuggestedVideos(videos) {
-        if (!DOM.suggestedVideosContainer) {
-            console.error('Suggested videos container not found');
-            return;
-        }
+        if (!DOM.suggestedVideosContainer) return;
+        
+        const html = videos.map(video => {
+            const { snippet, statistics, contentDetails } = video;
+            const thumbnail = snippet.thumbnails.medium || snippet.thumbnails.default;
+            const viewCount = statistics?.viewCount ? YouTubeUtils.formatViewCount(statistics.viewCount) : '';
+            const duration = contentDetails?.duration ? YouTubeUtils.formatDuration(contentDetails.duration) : '';
 
-        console.log('Displaying suggested videos:', videos.length);
-        const html = videos.map(video => this.createVideoCardHTML(video)).join('');
-        DOM.suggestedVideosContainer.innerHTML = html;
-
-        // Add click event listeners
-        this.bindVideoCardEvents();
-        console.log('Suggested videos displayed successfully');
-    }
-
-    /**
-     * Create HTML for a video card
-     * @param {Object} video - Video object
-     * @returns {string} - HTML string
-     */
-    static createVideoCardHTML(video) {
-        const { snippet, statistics, contentDetails } = video;
-        const thumbnail = snippet.thumbnails.medium || snippet.thumbnails.default;
-        const viewCount = statistics?.viewCount ? YouTubeUtils.formatViewCount(statistics.viewCount) : 'Unknown';
-        const duration = contentDetails?.duration ? YouTubeUtils.formatDuration(contentDetails.duration) : 'Unknown';
-
-        return `
-            <div class="suggested-video-card" data-video-id="${video.id}">
-                <div class="suggested-video-card__thumbnail">
-                    <img src="${thumbnail.url}" alt="${snippet.title}" loading="lazy">
-                </div>
-                <div class="suggested-video-card__content">
-                    <h4 class="suggested-video-card__title">${snippet.title}</h4>
-                    <p class="suggested-video-card__channel">${snippet.channelTitle}</p>
-                    <div class="suggested-video-card__meta">
-                        <span class="suggested-video-card__views">${viewCount}</span>
-                        <span class="suggested-video-card__duration">${duration}</span>
+            return `
+                <div class="suggested-video-card" data-video-id="${video.id}">
+                    <div class="suggested-video-card__thumbnail">
+                        <img src="${thumbnail.url}" alt="${snippet.title}" loading="lazy">
+                    </div>
+                    <div class="suggested-video-card__content">
+                        <h4 class="suggested-video-card__title" title="${snippet.title}">${snippet.title}</h4>
+                        <p class="suggested-video-card__channel">${snippet.channelTitle}</p>
+                        <div class="suggested-video-card__meta">
+                            ${viewCount ? `<span class="suggested-video-card__views">${viewCount} views</span>` : ''}
+                            ${duration ? `<span class="suggested-video-card__duration">${duration}</span>` : ''}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        }).join('');
+
+        DOM.suggestedVideosContainer.innerHTML = html;
+        this.bindVideoCardEvents();
     }
 
-    /**
-     * Bind click events to video cards
-     */
+    static displayFallbackSuggestions() {
+        if (!DOM.suggestedVideosContainer) return;
+
+        const html = FALLBACK_VIDEOS.map(video => {
+            const { snippet, statistics, contentDetails } = video;
+            const thumbnail = snippet.thumbnails.medium;
+            const viewCount = YouTubeUtils.formatViewCount(statistics.viewCount);
+            const duration = YouTubeUtils.formatDuration(contentDetails.duration);
+
+            return `
+                <div class="suggested-video-card" data-video-id="${video.id}">
+                    <div class="suggested-video-card__thumbnail">
+                        <img src="${thumbnail.url}" alt="${snippet.title}" loading="lazy">
+                    </div>
+                    <div class="suggested-video-card__content">
+                        <h4 class="suggested-video-card__title" title="${snippet.title}">${snippet.title}</h4>
+                        <p class="suggested-video-card__channel">${snippet.channelTitle}</p>
+                        <div class="suggested-video-card__meta">
+                            <span class="suggested-video-card__views">${viewCount} views</span>
+                            <span class="suggested-video-card__duration">${duration}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        DOM.suggestedVideosContainer.innerHTML = html;
+        this.bindVideoCardEvents();
+    }
+
     static bindVideoCardEvents() {
-        const videoCards = document.querySelectorAll('.suggested-video-card');
-        videoCards.forEach(card => {
+        const cards = DOM.suggestedVideosContainer.querySelectorAll('.suggested-video-card');
+        cards.forEach(card => {
             card.addEventListener('click', () => {
                 const videoId = card.dataset.videoId;
                 if (videoId) {
@@ -449,186 +723,195 @@ class SuggestedVideosController {
         });
     }
 
-    /**
-     * Show loading state
-     */
     static showLoading() {
-        if (!DOM.suggestedVideosContainer) {
-            console.error('Suggested videos container not found');
-            return;
-        }
-        
-        console.log('Showing loading state');
+        if (!DOM.suggestedVideosContainer) return;
         DOM.suggestedVideosContainer.innerHTML = `
-            <div class="suggested-videos-section__loading">
-                <div class="suggested-videos-section__loading-spinner"></div>
+            <div class="loading-state">
+                <div class="spinner"></div>
                 <p>Loading suggestions...</p>
             </div>
         `;
     }
 
-    /**
-     * Show error state
-     * @param {string} message - Error message
-     */
-    static showError(message) {
-        if (!DOM.suggestedVideosContainer) {
-            console.error('Suggested videos container not found');
-            return;
-        }
-        
-        console.log('Showing error:', message);
-        DOM.suggestedVideosContainer.innerHTML = `
-            <div class="suggested-videos-section__loading">
-                <p>❌ ${message}</p>
-                <button onclick="SuggestedVideosController.refreshSuggestions()" style="margin-top: 10px; padding: 8px 16px; background: var(--color-blue); color: white; border: none; border-radius: 6px; cursor: pointer;">
-                    Try Again
-                </button>
-            </div>
-        `;
-    }
-
-    /**
-     * Refresh suggestions
-     */
     static refreshSuggestions() {
-        const currentVideoId = appState.getVideoId();
-        if (currentVideoId) {
-            this.loadSuggestedVideos(currentVideoId);
-        }
+        const videoId = appState.getVideoId();
+        const title = DOM.activeVideoTitle ? DOM.activeVideoTitle.textContent : '';
+        this.loadSuggestedVideos(videoId, title);
     }
 }
 
-// ============================================================================
-// Message System
-// ============================================================================
 class MessageSystem {
-    /**
-     * Show a message notification
-     * @param {string} text - Message text
-     * @param {string} type - Message type ('success' or 'error')
-     */
     static show(text, type = 'success') {
-        if (!DOM.messageContainer) {
-            console.error('Message container not found');
-            return;
-        }
+        if (!DOM.messageContainer) return;
 
-        const message = this.createMessageElement(text, type);
+        const message = document.createElement('div');
+        message.className = `message message--${type}`;
+        message.textContent = text;
+        
         DOM.messageContainer.appendChild(message);
 
-        // Trigger animation
+        // Slide message in
         setTimeout(() => {
             message.classList.add('message--show');
         }, CONFIG.MESSAGE_ANIMATION_DELAY);
 
-        // Remove message after display time
+        // Slide message out and destroy
         setTimeout(() => {
-            this.hideMessage(message);
+            message.classList.remove('message--show');
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
+            }, CONFIG.MESSAGE_REMOVE_DELAY);
         }, CONFIG.MESSAGE_DISPLAY_TIME);
-    }
-
-    /**
-     * Create message element
-     * @param {string} text - Message text
-     * @param {string} type - Message type
-     * @returns {HTMLElement} - Message element
-     */
-    static createMessageElement(text, type) {
-        const message = document.createElement('div');
-        message.className = `message message--${type}`;
-        message.textContent = text;
-        return message;
-    }
-
-    /**
-     * Hide and remove message element
-     * @param {HTMLElement} message - Message element to hide
-     */
-    static hideMessage(message) {
-        message.classList.remove('message--show');
-        setTimeout(() => {
-            if (message.parentNode) {
-                message.parentNode.removeChild(message);
-            }
-        }, CONFIG.MESSAGE_REMOVE_DELAY);
     }
 }
 
-// ============================================================================
-// Video Player Controller
-// ============================================================================
 class VideoPlayerController {
+    static activeVideoObj = null;
+
     /**
-     * Load video by URL
-     * @param {string} youtubeUrl - YouTube URL
+     * Entry loader from search input field
      */
     static async loadVideo(youtubeUrl) {
         try {
-            console.log('Loading video with URL:', youtubeUrl);
-            const trimmedUrl = youtubeUrl.trim();
-            
-            if (!trimmedUrl) {
+            const trimmed = youtubeUrl.trim();
+            if (!trimmed) {
                 MessageSystem.show(MESSAGES.EMPTY_INPUT, 'error');
                 return false;
             }
 
-            const videoId = YouTubeUtils.extractVideoId(trimmedUrl);
-            console.log('Extracted video ID:', videoId);
-            
+            const videoId = YouTubeUtils.extractVideoId(trimmed);
             if (!videoId) {
                 MessageSystem.show(MESSAGES.INVALID_LINK, 'error');
                 return false;
             }
 
-            this.updateVideoPlayer(videoId);
+            await this.loadVideoById(videoId);
             this.clearInput();
-            
-            // Load suggested videos
-            console.log('Loading suggested videos for new video...');
-            await SuggestedVideosController.loadSuggestedVideos(videoId);
-            
-            MessageSystem.show(MESSAGES.SUCCESS_LOAD, 'success');
             return true;
-
-        } catch (error) {
-            console.error('Error loading video:', error);
-            MessageSystem.show('An error occurred while loading the video', 'error');
+        } catch (e) {
+            console.error('Error loading video:', e);
+            MessageSystem.show('Error loading video', 'error');
             return false;
         }
     }
 
     /**
-     * Update video player with new video ID
-     * @param {string} videoId - YouTube video ID
+     * Absolute loader, fetches metadata and sets frame
      */
-    static updateVideoPlayer(videoId) {
-        if (!DOM.videoPlayer) {
-            console.error('Video player element not found');
-            return;
-        }
+    static async loadVideoById(videoId) {
+        try {
+            appState.setVideoId(videoId);
+            
+            // Set frame src
+            this.updateIframeSource(videoId);
+            
+            // Fetch metadata
+            if (DOM.activeVideoTitle) DOM.activeVideoTitle.textContent = 'Loading video title...';
+            if (DOM.activeVideoChannel) DOM.activeVideoChannel.textContent = '';
+            
+            const details = await YouTubeUtils.fetchVideoDetailsOEmbed(videoId);
+            this.activeVideoObj = details;
+            
+            // Display title & author
+            if (DOM.activeVideoTitle) DOM.activeVideoTitle.textContent = details.title;
+            if (DOM.activeVideoChannel) DOM.activeVideoChannel.textContent = details.channelTitle;
 
-        appState.setVideoId(videoId);
-        const embedUrl = YouTubeUtils.buildEmbedUrl(videoId);
+            // Add to recently played list
+            appState.addHistory({
+                id: videoId,
+                title: details.title,
+                channelTitle: details.channelTitle,
+                thumbnailUrl: details.thumbnailUrl
+            });
+            LibraryController.renderHistory();
+
+            // Refresh Favorite Button icon states
+            this.updateFavoriteButtonState();
+
+            // Fire suggestions loads
+            await SuggestedVideosController.loadSuggestedVideos(videoId, details.title);
+
+            // Change ambiance lighting glow
+            this.setAmbientGlowColor(videoId);
+
+        } catch (error) {
+            console.error('Playback setup failed:', error);
+        }
+    }
+
+    static updateIframeSource(videoId) {
+        if (!DOM.videoPlayer) return;
+        const source = appState.getPlaybackSource();
+        const embedUrl = YouTubeUtils.buildEmbedUrl(videoId, source);
         DOM.videoPlayer.src = embedUrl;
     }
 
-    /**
-     * Load video by ID (for suggested videos)
-     * @param {string} videoId - YouTube video ID
-     */
-    static async loadVideoById(videoId) {
-        this.updateVideoPlayer(videoId);
+    static updateFavoriteButtonState() {
+        if (!DOM.favoriteToggle) return;
         
-        // Load suggested videos for the new video
-        await SuggestedVideosController.loadSuggestedVideos(videoId);
-        
-        MessageSystem.show('Video loaded successfully!', 'success');
+        const videoId = appState.getVideoId();
+        const isFav = appState.isFavorite(videoId);
+        const icon = DOM.favoriteToggle.querySelector('.action-btn__icon');
+        const text = DOM.favoriteToggle.querySelector('.action-btn__text');
+
+        if (isFav) {
+            DOM.favoriteToggle.classList.add('active');
+            if (icon) icon.textContent = '★';
+            if (text) text.textContent = 'Favorited';
+        } else {
+            DOM.favoriteToggle.classList.remove('active');
+            if (icon) icon.textContent = '☆';
+            if (text) text.textContent = 'Favorite';
+        }
     }
 
-    /**
-     * Clear input field
-     */
+    static toggleActiveFavorite() {
+        if (!this.activeVideoObj) return;
+
+        const isFavNow = appState.toggleFavorite({
+            id: appState.getVideoId(),
+            title: this.activeVideoObj.title,
+            channelTitle: this.activeVideoObj.channelTitle,
+            thumbnailUrl: this.activeVideoObj.thumbnailUrl
+        });
+
+        this.updateFavoriteButtonState();
+        LibraryController.renderFavorites();
+
+        if (isFavNow) {
+            MessageSystem.show('Added to Favorites', 'success');
+        } else {
+            MessageSystem.show('Removed from Favorites', 'success');
+        }
+    }
+
+    static copyEmbedLink() {
+        const videoId = appState.getVideoId();
+        const source = appState.getPlaybackSource();
+        const embedUrl = YouTubeUtils.buildEmbedUrl(videoId, source);
+
+        navigator.clipboard.writeText(embedUrl).then(() => {
+            MessageSystem.show('Embed link copied to clipboard!', 'success');
+        }).catch(err => {
+            console.error('Clipboard copy failed:', err);
+            MessageSystem.show('Failed to copy embed link', 'error');
+        });
+    }
+
+    static setAmbientGlowColor(videoId) {
+        if (!DOM.ambientGlow) return;
+        // Simple hash calculation to generate custom color hues per video
+        let hash = 0;
+        for (let i = 0; i < videoId.length; i++) {
+            hash = videoId.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = Math.abs(hash % 360);
+        // Inject hue into CSS ambient glow
+        document.documentElement.style.setProperty('--ambient-glow-color', `hsla(${hue}, 75%, 60%, 0.3)`);
+    }
+
     static clearInput() {
         if (DOM.youtubeLinkInput) {
             DOM.youtubeLinkInput.value = '';
@@ -637,21 +920,15 @@ class VideoPlayerController {
 }
 
 // ============================================================================
-// Event Handlers
+// Event Handlers & Event Listeners
 // ============================================================================
+
 class EventHandlers {
-    /**
-     * Handle load button click
-     */
     static async handleLoadButtonClick() {
-        const youtubeUrl = DOM.youtubeLinkInput?.value || '';
-        await VideoPlayerController.loadVideo(youtubeUrl);
+        const url = DOM.youtubeLinkInput?.value || '';
+        await VideoPlayerController.loadVideo(url);
     }
 
-    /**
-     * Handle input field keypress
-     * @param {KeyboardEvent} event - Keypress event
-     */
     static async handleInputKeypress(event) {
         if (event.key === 'Enter') {
             event.preventDefault();
@@ -660,44 +937,27 @@ class EventHandlers {
     }
 }
 
-// ============================================================================
-// Event Listeners
-// ============================================================================
 class EventListeners {
-    /**
-     * Initialize all event listeners
-     */
     static init() {
         this.bindLoadButton();
         this.bindInputField();
         this.bindRefreshSuggestions();
+        this.bindSourceSelector();
+        this.bindShelfActions();
     }
 
-    /**
-     * Bind load button event listener
-     */
     static bindLoadButton() {
         if (DOM.loadButton) {
             DOM.loadButton.addEventListener('click', EventHandlers.handleLoadButtonClick.bind(EventHandlers));
-        } else {
-            console.error('Load button not found');
         }
     }
 
-    /**
-     * Bind input field event listener
-     */
     static bindInputField() {
         if (DOM.youtubeLinkInput) {
             DOM.youtubeLinkInput.addEventListener('keypress', EventHandlers.handleInputKeypress.bind(EventHandlers));
-        } else {
-            console.error('YouTube link input not found');
         }
     }
 
-    /**
-     * Bind refresh suggestions button
-     */
     static bindRefreshSuggestions() {
         if (DOM.refreshSuggestionsBtn) {
             DOM.refreshSuggestionsBtn.addEventListener('click', () => {
@@ -705,63 +965,78 @@ class EventListeners {
             });
         }
     }
+
+    static bindSourceSelector() {
+        if (DOM.playerSource) {
+            DOM.playerSource.value = appState.getPlaybackSource();
+
+            DOM.playerSource.addEventListener('change', (e) => {
+                const selectedSource = e.target.value;
+                appState.setPlaybackSource(selectedSource);
+                
+                // Reload current video with new source iframe compilation
+                VideoPlayerController.updateIframeSource(appState.getVideoId());
+                
+                const labels = {
+                    nocookie: 'YouTube No-Cookie',
+                    invidious: 'Invidious Instance',
+                    piped: 'Piped Proxy'
+                };
+                MessageSystem.show(`Switched player source to ${labels[selectedSource] || selectedSource}`, 'success');
+            });
+        }
+    }
+
+    static bindShelfActions() {
+        if (DOM.favoriteToggle) {
+            DOM.favoriteToggle.addEventListener('click', () => {
+                VideoPlayerController.toggleActiveFavorite();
+            });
+        }
+        if (DOM.shareEmbed) {
+            DOM.shareEmbed.addEventListener('click', () => {
+                VideoPlayerController.copyEmbedLink();
+            });
+        }
+    }
 }
 
 // ============================================================================
-// Application Initialization
+// Main Application Loader
 // ============================================================================
+
 class YouTubeBypassApp {
-    /**
-     * Initialize the application
-     */
     static init() {
         try {
-            console.log('Initializing YouTube Bypass App...');
+            console.log('Starting YouTube Bypass Player System...');
             this.validateDOM();
-            console.log('DOM validation passed');
+            
+            // Start sub-controllers
+            TabController.init();
+            LibraryController.init();
             EventListeners.init();
-            console.log('Event listeners initialized');
             ApiKeyController.init();
-            console.log('API Key Controller initialized');
             
-            // Try to load suggested videos for default video if API key is available
-            setTimeout(() => {
-                if (appState.hasValidApiKey()) {
-                    console.log('Loading suggested videos for default video...');
-                    SuggestedVideosController.loadSuggestedVideos(CONFIG.DEFAULT_VIDEO_ID);
-                } else {
-                    console.log('No valid API key, skipping default video suggestions');
-                }
-            }, 1000);
+            // Read last played video on startup, otherwise load the default configuration ID
+            const startupVideoId = appState.history.length > 0 ? appState.history[0].id : CONFIG.DEFAULT_VIDEO_ID;
             
-            console.log('YouTube Bypass App initialized successfully');
+            VideoPlayerController.loadVideoById(startupVideoId);
+            console.log('App initialized successfully. Startup video ID:', startupVideoId);
         } catch (error) {
-            console.error('Failed to initialize app:', error);
+            console.error('Initialization error occurred:', error);
         }
     }
 
-    /**
-     * Validate that all required DOM elements exist
-     */
     static validateDOM() {
-        const requiredElements = [
-            'youtubeLinkInput',
-            'loadButton', 
-            'videoPlayer',
-            'messageContainer'
-        ];
-
-        const missingElements = requiredElements.filter(element => !DOM[element]);
+        const required = ['youtubeLinkInput', 'loadButton', 'videoPlayer', 'messageContainer'];
+        const missing = required.filter(el => !DOM[el]);
         
-        if (missingElements.length > 0) {
-            throw new Error(`Missing required DOM elements: ${missingElements.join(', ')}`);
+        if (missing.length > 0) {
+            throw new Error(`Missing DOM elements: ${missing.join(', ')}`);
         }
     }
 }
 
-// ============================================================================
-// Application Startup
-// ============================================================================
 document.addEventListener('DOMContentLoaded', () => {
     YouTubeBypassApp.init();
 });
